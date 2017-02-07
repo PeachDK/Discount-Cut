@@ -14,12 +14,12 @@ namespace Discount_Cut
 
             Console.WriteLine("Hairdressers working");
 
-            Hardresser Hairdresser_A = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_B = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_C = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_D = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_E = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_F = new Hardresser(Hardresser.State.Waiting);
+            Hardresser Hairdresser_A = new Hardresser(Hardresser.State.Waiting, "A");
+            Hardresser Hairdresser_B = new Hardresser(Hardresser.State.Waiting, "B");
+            Hardresser Hairdresser_C = new Hardresser(Hardresser.State.Waiting, "C");
+            Hardresser Hairdresser_D = new Hardresser(Hardresser.State.Waiting, "D");
+            Hardresser Hairdresser_E = new Hardresser(Hardresser.State.Waiting, "E");
+            Hardresser Hairdresser_F = new Hardresser(Hardresser.State.Waiting, "F");
 
 
             Scissor Scissor_AB = new Scissor("AB");
@@ -35,6 +35,13 @@ namespace Discount_Cut
             Thread D = new Thread(() => Hairdresser_D.ServiceCustomer(Scissor_DE, Scissor_EF));
             Thread E = new Thread(() => Hairdresser_E.ServiceCustomer(Scissor_EF, Scissor_FA));
             Thread F = new Thread(() => Hairdresser_F.ServiceCustomer(Scissor_FA, Scissor_AB));
+
+            A.IsBackground = true;
+            B.IsBackground = true;
+            C.IsBackground = true;
+            D.IsBackground = true;
+            E.IsBackground = true;
+            F.IsBackground = true;
 
 
             A.Start();
@@ -95,17 +102,17 @@ namespace Discount_Cut
                 return _staticinstance;
             }
         }
-        public int ID { get; set; }
+        private int ID { get; set; }
 
         private Processes()
         {
-            ID = 1;
+            ID = 0;
 
         }
 
         public int nextid()
         {
-            return ID++;
+            return ID = ID +1;
         }
 
     }
@@ -114,19 +121,22 @@ namespace Discount_Cut
     {
         public enum State
         {
+            GoneHome,
             Waiting,
             Break,
             Work
         }
 
         private object Locker = new object();
+        public string Name;
         public int Customer_Serviced = 0;
         public State state { get; set; }
 
 
-        public Hardresser(State staterino)
+        public Hardresser(State staterino, string name)
         {
             state = staterino;
+            Name = name;
         }
 
 
@@ -135,28 +145,29 @@ namespace Discount_Cut
             Random random = new Random();
             int unitwork = 10;
             int process = 0;
+            bool GoOn = true;
 
-            while (true)
+            while (GoOn)
             {
                 
 
                 if (state == State.Work)
                 {
+                    
                     Monitor.Enter(Scissor1);
                     Monitor.Enter(Scissor2);
-
-                    Console.WriteLine("Using: Scissors " + Scissor1.Label + " and " + Scissor2.Label + " Start Process: " + process);
-
-                    Scissor1.used++; Scissor2.used++;
-
-                    Console.WriteLine("      10-" + unitwork + "  Process: " + process);
+                                      
+                    Console.WriteLine("Using: Scissors " + Scissor1.Label + " and " + Scissor2.Label + " Start Process: " + process + " 10-" + unitwork);
+                    Thread.Sleep(random.Next(100, 1000));
+                    Scissor1.used++; Scissor2.used++;                   
                     Console.WriteLine("      " + Scissor1.Label + "   " + Scissor1.used);
-                    Console.WriteLine("      " + Scissor2.Label + "   " + Scissor2.used);
+                    Console.WriteLine("      " + Scissor2.Label + "   " + Scissor2.used);                 
 
-                    Monitor.Pulse(Scissor1);
-                    Monitor.Pulse(Scissor2);
                     unitwork = unitwork -1;
                     state = State.Break;
+
+                    Monitor.Exit(Scissor2);
+                    Monitor.Exit(Scissor1);
                     if (unitwork <= 0)
                     {
                         Customer_Serviced++;
@@ -169,15 +180,22 @@ namespace Discount_Cut
 
                 if (state == State.Waiting)
                 {
-                    Thread.Sleep(random.Next(2000, 6000));
+                    Thread.Sleep(random.Next(100, 1000));
                     state = State.Work;
                     process = Processes.StaticInstance.nextid();
                 }
 
                 if (state == State.Break)
                 {
-                    Thread.Sleep(random.Next(4000, 10000));
+                    Thread.Sleep(random.Next(100, 1000));
                     state = State.Work;
+                }
+
+                if(Customer_Serviced == 10)
+                {
+                    state = State.GoneHome;
+                    Console.WriteLine("                                Hardresser " + Name +" hase gone home for today.");
+                    GoOn = false;
                 }
 
             }
