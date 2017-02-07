@@ -44,18 +44,25 @@ namespace Discount_Cut
             E.Start();
             F.Start();
 
-
+            int lastsum = 0;
             while (true)
             {
-                Thread.Sleep(10000);
+                
                 int sum = 0;
-
+                
 
                 sum = sum + Hairdresser_A.Customer_Serviced + Hairdresser_B.Customer_Serviced + Hairdresser_C.Customer_Serviced +
                       Hairdresser_D.Customer_Serviced + Hairdresser_E.Customer_Serviced + Hairdresser_F.Customer_Serviced;
 
 
-                Console.WriteLine("                                                            Customers Serviced = " + sum);
+
+                if (sum == lastsum)
+                {
+                    lastsum = sum + 1;
+                    Console.WriteLine("                                                            Customers Serviced = " + sum);
+                    
+                }
+                
 
 
             }
@@ -146,8 +153,8 @@ namespace Discount_Cut
                     Console.WriteLine("      " + Scissor1.Label + "   " + Scissor1.used);
                     Console.WriteLine("      " + Scissor2.Label + "   " + Scissor2.used);
 
-                    Monitor.Pulse(Scissor1);
-                    Monitor.Pulse(Scissor2);
+                    Monitor.Exit(Scissor1);
+                    Monitor.Exit(Scissor2);
                     unitwork = unitwork -1;
                     state = State.Break;
                     if (unitwork <= 0)
@@ -162,14 +169,14 @@ namespace Discount_Cut
 
                 if (state == State.Waiting)
                 {
-                    Thread.Sleep(random.Next(5000, 16000));
+                    Thread.Sleep(random.Next(2000, 6000));
                     state = State.Work;
                     process = Processes.StaticInstance.nextid();
                 }
 
                 if (state == State.Break)
                 {
-                    Thread.Sleep(random.Next(2000, 5000));
+                    Thread.Sleep(random.Next(4000, 10000));
                     state = State.Work;
                 }
 
