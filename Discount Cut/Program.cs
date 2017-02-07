@@ -14,11 +14,11 @@ namespace Discount_Cut
 
             Console.WriteLine("Hairdressers working");
 
-            Hardresser Hairdresser_A = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_A = new Hardresser(Hardresser.State.Waiting);
             Hardresser Hairdresser_B = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_C = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_C = new Hardresser(Hardresser.State.Waiting);
             Hardresser Hairdresser_D = new Hardresser(Hardresser.State.Waiting);
-            Hardresser Hairdresser_E = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_E = new Hardresser(Hardresser.State.Waiting);
             Hardresser Hairdresser_F = new Hardresser(Hardresser.State.Waiting);
 
 
@@ -134,7 +134,7 @@ namespace Discount_Cut
         {
             Random random = new Random();
             int unitwork = 10;
-            int process = Processes.StaticInstance.nextid();
+            int process = 0;
 
             while (true)
             {
@@ -153,8 +153,8 @@ namespace Discount_Cut
                     Console.WriteLine("      " + Scissor1.Label + "   " + Scissor1.used);
                     Console.WriteLine("      " + Scissor2.Label + "   " + Scissor2.used);
 
-                    Monitor.Exit(Scissor1);
-                    Monitor.Exit(Scissor2);
+                    Monitor.Pulse(Scissor1);
+                    Monitor.Pulse(Scissor2);
                     unitwork = unitwork -1;
                     state = State.Break;
                     if (unitwork <= 0)
