@@ -8,17 +8,18 @@ namespace Discount_Cut
 {
     class Program
     {
+
         static void Main(string[] args)
         {
 
             Console.WriteLine("Hairdressers working");
 
-            Hardresser Hairdresser_A = new Hardresser();
-            Hardresser Hairdresser_B = new Hardresser();
-            Hardresser Hairdresser_C = new Hardresser();
-            Hardresser Hairdresser_D = new Hardresser();
-            Hardresser Hairdresser_E = new Hardresser();
-            Hardresser Hairdresser_F = new Hardresser();
+            Hardresser Hairdresser_A = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_B = new Hardresser(Hardresser.State.Waiting);
+            Hardresser Hairdresser_C = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_D = new Hardresser(Hardresser.State.Waiting);
+            Hardresser Hairdresser_E = new Hardresser(Hardresser.State.Work);
+            Hardresser Hairdresser_F = new Hardresser(Hardresser.State.Waiting);
 
 
             Scissor Scissor_AB = new Scissor("AB");
@@ -43,16 +44,19 @@ namespace Discount_Cut
             E.Start();
             F.Start();
 
+
             while (true)
             {
+                Thread.Sleep(10000);
                 int sum = 0;
 
 
-                sum = sum + Hairdresser_A.Customer_Serviced + Hairdresser_B.Customer_Serviced + Hairdresser_C.Customer_Serviced + 
+                sum = sum + Hairdresser_A.Customer_Serviced + Hairdresser_B.Customer_Serviced + Hairdresser_C.Customer_Serviced +
                       Hairdresser_D.Customer_Serviced + Hairdresser_E.Customer_Serviced + Hairdresser_F.Customer_Serviced;
 
+
                 Console.WriteLine("                                                            Customers Serviced = " + sum);
-                Thread.Sleep(3000);
+
 
             }
 
@@ -101,37 +105,73 @@ namespace Discount_Cut
 
     class Hardresser
     {
+        public enum State
+        {
+            Waiting,
+            Break,
+            Work
+        }
+
         private object Locker = new object();
         public int Customer_Serviced = 0;
+        public State state { get; set; }
+
+
+        public Hardresser(State staterino)
+        {
+            state = staterino;
+        }
+
 
         public void ServiceCustomer(Scissor Scissor1, Scissor Scissor2)
         {
             Random random = new Random();
+            int unitwork = 10;
+            int process = Processes.StaticInstance.nextid();
 
             while (true)
             {
-                for (int i = 10; i > 0; i--)
+                
+
+                if (state == State.Work)
                 {
-                    int p = Processes.StaticInstance.nextid();
-                   
+                    Monitor.Enter(Scissor1);
+                    Monitor.Enter(Scissor2);
 
-                   
-                    Monitor.Enter(Scissor1); Monitor.Enter(Scissor2);               
-                   
-                    Console.WriteLine("Using: Scissors " + Scissor1.Label + " and " + Scissor2.Label);
-                    Console.WriteLine("Start" + p);
-                    Thread.Sleep(random.Next(600, 2000));
-                    Scissor1.used++;
-                    Scissor2.used++;
-                    Console.WriteLine("Done" + p);
-                    Console.WriteLine("                                           " + Scissor1.Label + "   " + Scissor1.used);
-                    Console.WriteLine("                                           " + Scissor2.Label + "   " + Scissor2.used);
+                    Console.WriteLine("Using: Scissors " + Scissor1.Label + " and " + Scissor2.Label + " Start Process: " + process);
 
-                    Monitor.Pulse(Scissor1); Monitor.Pulse(Scissor2);
+                    Scissor1.used++; Scissor2.used++;
+
+                    Console.WriteLine("      10-" + unitwork + "  Process: " + process);
+                    Console.WriteLine("      " + Scissor1.Label + "   " + Scissor1.used);
+                    Console.WriteLine("      " + Scissor2.Label + "   " + Scissor2.used);
+
+                    Monitor.Pulse(Scissor1);
+                    Monitor.Pulse(Scissor2);
+                    unitwork = unitwork -1;
+                    state = State.Break;
+                    if (unitwork <= 0)
+                    {
+                        Customer_Serviced++;
+                        unitwork = 10;
+                        state = State.Waiting;
+                    }
                     
                 }
-                Thread.Sleep(random.Next(1000,5000));
-                Customer_Serviced++;
+
+
+                if (state == State.Waiting)
+                {
+                    Thread.Sleep(random.Next(5000, 16000));
+                    state = State.Work;
+                    process = Processes.StaticInstance.nextid();
+                }
+
+                if (state == State.Break)
+                {
+                    Thread.Sleep(random.Next(2000, 5000));
+                    state = State.Work;
+                }
 
             }
 
@@ -142,6 +182,6 @@ namespace Discount_Cut
 }
 
 
-    
+
 
 
