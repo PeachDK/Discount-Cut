@@ -106,27 +106,31 @@ namespace Discount_Cut
 
         public void ServiceCustomer(Scissor Scissor1, Scissor Scissor2)
         {
+            Random random = new Random();
+
             while (true)
             {
                 for (int i = 10; i > 0; i--)
                 {
-
-                    Monitor.Enter(Locker);
-
                     int p = Processes.StaticInstance.nextid();
-                    Random random = new Random();
+                   
+
+                   
+                    Monitor.Enter(Scissor1); Monitor.Enter(Scissor2);               
+                   
                     Console.WriteLine("Using: Scissors " + Scissor1.Label + " and " + Scissor2.Label);
                     Console.WriteLine("Start" + p);
-                    Thread.Sleep(random.Next(6000, 20000));
+                    Thread.Sleep(random.Next(600, 2000));
                     Scissor1.used++;
                     Scissor2.used++;
                     Console.WriteLine("Done" + p);
                     Console.WriteLine("                                           " + Scissor1.Label + "   " + Scissor1.used);
                     Console.WriteLine("                                           " + Scissor2.Label + "   " + Scissor2.used);
 
-                    Monitor.Exit(Locker);
+                    Monitor.Pulse(Scissor1); Monitor.Pulse(Scissor2);
+                    
                 }
-
+                Thread.Sleep(random.Next(1000,5000));
                 Customer_Serviced++;
 
             }
